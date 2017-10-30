@@ -1,0 +1,39 @@
+
+{% import "bootstrap/wtf.html" as wtf %}
+
+{%- extends "base.html" %}
+
+
+{% block content %}
+   <div class="container">
+      <div class="jumbotron">
+        <h1>Let's kill some containers!</h1>
+        <p>If Grant asks, we took them to the "container farm" where they eat RAM all day long</p>
+      </div>
+   <div class="col-md-12">
+     {{ wtf.quick_form(form) }}
+   </div>
+   <div class="col-md-12">
+     <h2>Running containers</h2>
+     <table class="table table-hover">
+     <thead>
+     <tr>
+       <td>Name</td>
+       <td>Id</td>
+       <td>Image</td>
+       <td>Status</td>
+     </tr>
+     </thead>
+     <tbody>
+     {% for c in client.containers.list() %}
+     <tr>
+        <td>{{ c.name }}</td>
+        <td>{{ c.short_id }}</td>
+        <td>{{ c.image }}</td>
+        <td>{{ c.status }}</td>
+     <tr>
+    {% endfor %}
+    </tbody>
+   </table>
+   </div>
+{%- endblock %}

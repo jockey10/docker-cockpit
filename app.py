@@ -21,7 +21,7 @@ client = docker.from_env(version="auto")
 # navbar has an usual amount of Link-Elements, more commonly you will have a
 # lot more View instances.
 nav.register_element('frontend_top', Navbar(
-    View('Cockpit Docker', '.index'),
+    View('Docker Cockpit', '.index'),
     View('Home', '.index'),
     View('Kill Container', '.example_form'),
     Text('Using Flask-Bootstrap {}'.format(FLASK_BOOTSTRAP_VERSION)), ))

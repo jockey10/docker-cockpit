@@ -14,6 +14,7 @@ from .forms import SignupForm
 from .nav import nav
 
 import docker
+from subprocess import Popen, PIPE
 
 app = Blueprint('app', __name__)
 client = docker.from_env(version="auto")
@@ -26,6 +27,21 @@ nav.register_element('frontend_top', Navbar(
     View('Kill Container', '.example_form'),
     Text('Using Flask-Bootstrap {}'.format(FLASK_BOOTSTRAP_VERSION)), ))
 
+def kill_container( containerId, remove = False ):
+    """
+    Kill the container given by containerId.
+
+    Optional: remove. If remove=True, container will also be deleted.
+    """
+    
+    for action in ( 'kill', 'rm' ):
+        if action == 'rm' and not remove:
+            break
+
+        p = Popen( 'docker %s %s' % ( action, containerId ), shell=True, stdout=PIPE, stderr=PIPE )
+
+        if p.wait() != 0:
+            raise RuntimeError( p.stderr.read() )
 
 # Our index-page just shows a quick explanation. Check out the template
 # "templates/index.html" documentation for more details.
@@ -40,13 +56,22 @@ def example_form():
 
     # I couldn't get this working with 'form.validate_on_submit()'
     if form.validate_on_submit():
+        container_name = form.name.data
+        kill_and_rm = True if form.submit_killrm.data else False
+
+        kill_container( container_name, remove=kill_and_rm )
+
         # We don't have anything fancy in our application, so we are just
         # flashing a message when a user completes the form successfully.
         #
         # Note that the default flashed messages rendering allows HTML, so
         # we need to escape things if we input user values:
-        flash('Container "{}" has "gone to the farm"'
-              .format(escape(form.name.data)))
+        if kill_and_rm:
+            flash('Container "{}" has gone to the great farm in the sky'
+                  .format(escape(form.name.data)))
+        else:
+            flash('Container "{}" has "gone to the farm"'
+                  .format(escape(form.name.data)))
 
         # In a real application, you may wish to avoid this tedious redirect.
         return redirect(url_for('.index'))

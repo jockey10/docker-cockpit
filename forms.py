@@ -7,4 +7,5 @@ from wtforms.validators import Required
 class SignupForm(Form):
     name = TextField(u'Container Name', validators=[Required()])
 
-    submit = SubmitField(u'Kill!')
+    submit_kill = SubmitField(u'Kill!')
+    submit_killrm = SubmitField(u'Kill and Remove!')

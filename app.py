@@ -57,15 +57,21 @@ def example_form():
     # I couldn't get this working with 'form.validate_on_submit()'
     if form.validate_on_submit():
         container_name = form.name.data
-        kill_container( container_name )
+        kill_and_rm = True if form.submit_killrm.data else False
+
+        kill_container( container_name, remove=kill_and_rm )
 
         # We don't have anything fancy in our application, so we are just
         # flashing a message when a user completes the form successfully.
         #
         # Note that the default flashed messages rendering allows HTML, so
         # we need to escape things if we input user values:
-        flash('Container "{}" has "gone to the farm"'
-              .format(escape(form.name.data)))
+        if kill_and_rm:
+            flash('Container "{}" has gone to the great farm in the sky'
+                  .format(escape(form.name.data)))
+        else:
+            flash('Container "{}" has "gone to the farm"'
+                  .format(escape(form.name.data)))
 
         # In a real application, you may wish to avoid this tedious redirect.
         return redirect(url_for('.index'))

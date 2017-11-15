@@ -5,7 +5,7 @@
 # You can find out more about blueprints at
 # http://flask.pocoo.org/docs/blueprints/
 
-from flask import Blueprint, render_template, flash, redirect, request, url_for
+from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_bootstrap import __version__ as FLASK_BOOTSTRAP_VERSION
 from flask_nav.elements import Navbar, View, Text
 from markupsafe import escape
@@ -14,7 +14,8 @@ from .forms import SignupForm
 from .nav import nav
 
 import docker
-from subprocess import Popen, PIPE
+import pipes
+from subprocess32 import STDOUT, call
 
 app = Blueprint('app', __name__)
 client = docker.from_env(version="auto")
@@ -33,15 +34,21 @@ def kill_container( containerId, remove = False ):
 
     Optional: remove. If remove=True, container will also be deleted.
     """
-    
+
     for action in ( 'kill', 'rm' ):
         if action == 'rm' and not remove:
             break
 
-        p = Popen( 'docker %s %s' % ( action, containerId ), shell=True, stdout=PIPE, stderr=PIPE )
+        # Here we're using the subprocess32 module backported for 2.7.x, which
+        # provides support for a timeout provided to the call command
+        # https://stackoverflow.com/questions/1191374/using-module-subprocess-with-timeout
 
-        if p.wait() != 0:
-            raise RuntimeError( p.stderr.read() )
+        # we could also use the check_output command here - though we don't
+        # really need to check the output for the application
+
+        # NB: use shell=False to avoid vulnerabilities
+        # https://stackoverflow.com/questions/3172470/actual-meaning-of-shell-true-in-subprocess
+        call(['docker',action,containerId], stderr=STDOUT, timeout=5, shell=False )
 
 # Our index-page just shows a quick explanation. Check out the template
 # "templates/index.html" documentation for more details.
@@ -56,7 +63,7 @@ def example_form():
 
     # I couldn't get this working with 'form.validate_on_submit()'
     if form.validate_on_submit():
-        container_name = form.name.data
+        container_name = pipes.quote(form.name.data)
         kill_and_rm = True if form.submit_killrm.data else False
 
         kill_container( container_name, remove=kill_and_rm )
